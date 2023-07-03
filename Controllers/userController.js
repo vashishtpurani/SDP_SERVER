@@ -4,20 +4,21 @@ const {dataModel} = require("../Models/dataModel")
 const otpGenerator = require("otp-generator")
 const crypto = require("crypto")
 const jwt = require("jsonwebtoken");
+const bcrypt = require('bcryptjs')
 
 const algorithm = process.env.ALGORITHM //algorithm to use
 const secret = process.env.SECRET
 const key = crypto.scryptSync(secret, 'salt', 24); //create key
 
-const genrateToken = (id)=>{
+const generateToken = (id)=>{
     return jwt.sign({id},process.env.JWT_SECRETKEY )
 }
 
 module.exports.sendOtp = async (req,res)=>{
     try{
         const num = req.body.number
-        const user = await userModel.findOne({
-            number: num
+        const user = await dataModel.findOne({
+            phoneNumber: num
         })
         if (user) {
             return res.status(400).send("User already Registered")
@@ -35,8 +36,8 @@ module.exports.sendOtp = async (req,res)=>{
 
 
         const otp = new Otp({number: number, otp: OTP})
-        console.log("Genrated otp for", number, "is :" + OTP, "and encrypted is", encrypted, "")
-        console.log("Genrated otp is :" + OTP)
+        console.log("Generated otp for", number, "is :" + OTP, "and encrypted is", encrypted, "")
+        console.log("Generated otp is :" + OTP)
 
         const final = await otp.save()
         return res.status(200).json({message: "ok"})
@@ -56,11 +57,11 @@ module.exports.Verify = async(req,res)=>{
         })
         console.log(encrypted)
         console.log(req.body.otp)
-        if (otpHolder.length === 0) return res.status(400).send("NO OTP RECIVED")
+        if (otpHolder.length === 0) return res.status(400).send("NO OTP RECEIVED")
         const lastOtp = otpHolder.pop()
         console.log("last sent otp is : " + lastOtp.otp)
         console.log("Your entered otp is : " + req.body.otp)
-        const abc = lastOtp.otp === req.body.otp || 1111
+        const abc = lastOtp.otp === req.body.otp || 1111 // TODO: change this before final app production
         console.log(abc)
         if (abc) {
             const user = new userModel({number:num})
@@ -70,7 +71,7 @@ module.exports.Verify = async(req,res)=>{
                 number: lastOtp.number
             })
 
-            return res.status(200).json({message: "OK",token:genrateToken(user._id), data: final, id})
+            return res.status(200).json({message: "OK",token:generateToken(user._id), data: final, id})
         } else
             console.log("wrong")
         return res.status(400).json({message: "WRONG"})
@@ -81,18 +82,46 @@ module.exports.Verify = async(req,res)=>{
 }
 module.exports.signUp = async (req,res)=>{
     try{
-        const {firstName,lastName,number,password} = req.body
+        const {firstName,lastName,phoneNumber,password} = req.body
+        const salt = await bcrypt.genSalt(10)
+        const hashPass = await bcrypt.hash(password,salt)
+
         const sabe = new dataModel({
             firstName:firstName,
             lastName:lastName,
-            phoneNumber:number,
-            password:password
+            phoneNumber:phoneNumber,
+            password:hashPass
         })
-        await sabe.save()
-        res.status(200).send("User Gemrated")
 
+        await sabe.save()
+        res.status(200).send("User Generated")
     }catch (e) {
         console.log(e)
         res.send(e)
+    }
+}
+
+module.exports.signIn = async (req,res)=>{
+    try{
+        const {number,password} = req.body
+        const user = await dataModel.findOne({phoneNumber:number})
+        // console.log(number,password,user)
+        const staus = await bcrypt.compare(password,user.password)
+        console.log(staus)
+        if(user && (await bcrypt.compare(password,user.password))){
+            console.log("USER FOUND")
+            res.status(200).json({message:"User Found",
+                _id : user.id,
+                phoneNumber : user.phoneNumber,
+                password: user.password,
+                token: generateToken(user._id)
+            })
+        }
+        else {
+            res.status(400).json({message:"Wrong email or password"})
+        }
+
+    }catch (e){
+        res.status(400).send(e)
     }
 }

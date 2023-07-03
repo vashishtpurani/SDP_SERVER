@@ -19,3 +19,4 @@ app.use(bodyParser.urlencoded({extended:false}))
 app.use("/user",userRoutes)
 
 module.exports = app
+

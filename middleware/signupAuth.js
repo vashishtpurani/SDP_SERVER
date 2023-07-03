@@ -1,18 +1,17 @@
 const jwt = require('jsonwebtoken')
 const asyncHandler = require('express-async-handler')
 const {userModel} = require("../Models/userModel")
-const cors = require('cors')
 
 
 
-const protect = asyncHandler(async (req,res,next)=>{
+const signupAuth = asyncHandler(async (req, res, next)=>{
     let token
 
     if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
         try{
             token = req.headers.authorization.split(' ')[1]
-            const decoded = jwt.verify(token,process.env.JWT_SECRETKEY )
-            req.login = await userModel.findById(decoded.id).select('-password')
+            const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+            req.login = await userModel.findById(decoded.id).select('-number')
             next()
         }catch (error){
             console.log(error)
@@ -26,4 +25,4 @@ const protect = asyncHandler(async (req,res,next)=>{
     }
 })
 
-module.exports = {protect}
+module.exports = {signupAuth}

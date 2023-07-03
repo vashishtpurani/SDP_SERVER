@@ -1,9 +1,9 @@
 require("dotenv/config")
-const bodyParser = require('body-parser')
 const app = require('./app')
 const mongoose = require('mongoose')
 
 
+//TODO: change where you store secrets
 
 mongoose.connect(process.env.MONGODB_URL_LOCAL,{
     useNewUrlParser:true,
