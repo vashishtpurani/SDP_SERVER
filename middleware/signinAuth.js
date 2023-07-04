@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 const asyncHandler = require('express-async-handler')
-const {dataModel} = require("../Models/dataModel")
+const {dataModel} = require("../Models/signInAuth/dataModel")
 
 
 
@@ -13,6 +13,7 @@ const signinAuth = asyncHandler(async (req, res, next)=>{
             const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
             req.login = await dataModel.findById(decoded.id).select('-number')
             next()
+            // console.log("called")
         }catch (error){
             console.log(error)
             res.status(401)

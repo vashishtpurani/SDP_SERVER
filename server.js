@@ -18,3 +18,6 @@ const port = process.env.PORT || 3000
 app.listen(port,()=>{
     console.log(`Server hosted successfully at ${port}`)
 })
+/*assets
+    https://www.altexsoft.com/blog/document-classification/
+*/
