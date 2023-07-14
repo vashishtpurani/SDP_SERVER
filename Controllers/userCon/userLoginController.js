@@ -1,6 +1,6 @@
-const {userModel} = require("../Models/signInAuth/userModel")
-const {Otp} = require("../Models/signInAuth/otpModel")
-const {dataModel} = require("../Models/signInAuth/dataModel")
+const {userModel} = require("../../Models/signInAuth/userModel")
+const {Otp} = require("../../Models/signInAuth/otpModel")
+const {dataModel} = require("../../Models/signInAuth/dataModel")
 const otpGenerator = require("otp-generator")
 const crypto = require("crypto")
 const jwt = require("jsonwebtoken");
@@ -61,11 +61,11 @@ module.exports.Verify = async(req,res)=>{
         const lastOtp = otpHolder.pop()
         console.log("last sent otp is : " + lastOtp.otp)
         console.log("Your entered otp is : " + req.body.otp)
-        const abc = lastOtp.otp === req.body.otp || 1111 // TODO: change this before final app production
-        console.log(abc)
-        if (abc) {
-            const user = new userModel({number:num})
-            const final = await user.save()
+        const valid = lastOtp.otp === req.body.otp || 1111 // TODO: change this before final app production
+        console.log(valid)
+        if (valid) {
+            const user = await new userModel({number:num})
+            const final =  user.save()
             const id = user._id
             const remove = await Otp.deleteMany({
                 number: lastOtp.number
@@ -80,9 +80,10 @@ module.exports.Verify = async(req,res)=>{
     }
 
 }
-module.exports.signUp = async (req,res)=>{
+module.exports.signUp = async(req,res)=>{
     try{
         const {firstName,lastName,phoneNumber,password} = req.body
+
         const salt = await bcrypt.genSalt(10)
         const hashPass = await bcrypt.hash(password,salt)
 
@@ -108,7 +109,7 @@ module.exports.signIn = async (req,res)=>{
         // console.log(number,password,user)
         const staus = await bcrypt.compare(password,user.password)
         console.log(staus)
-        if(user && (await bcrypt.compare(password,user.password))){
+        if(user.length!==0 && (await bcrypt.compare(password,user.password))){
             console.log("USER FOUND")
             res.status(200).json({message:"User Found",
                 _id : user.id,

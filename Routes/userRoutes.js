@@ -1,8 +1,8 @@
 const router = require('express').Router()
-const {signUp,Verify, sendOtp, signIn} = require("../Controllers/userLoginController")
+const {signUp,Verify, sendOtp, signIn} = require("../Controllers/userCon/userLoginController")
 const {signupAuth} = require("../middleware/signupAuth")
 const {signinAuth} = require("../middleware/signinAuth");
-const {raiseQuery} = require("../Controllers/userQueryController")
+const {raiseQuery} = require("../Controllers/userCon/userQueryController")
 
 //for user Auth
 router.route('/sendOtp').post(sendOtp)

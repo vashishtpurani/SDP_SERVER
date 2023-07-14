@@ -1,4 +1,4 @@
-const {raiseQuery} = require("../Models/queryModels/raiseQuery")
+const {raiseQueryModel} = require("../../Models/queryModels/raiseQueryModel")
 const axios =  require("axios")
 module.exports.raiseQuery = async(req,res)=>{
     try{
@@ -15,11 +15,11 @@ module.exports.raiseQuery = async(req,res)=>{
             )
             return response.data;
         }
-        let abc = await Classifier().then((e)=>{
+        await Classifier().then((e)=>{
             Classs = e.labels[0]
             console.log(Classs)
-        })
-        const Query = new raiseQuery({uId:uId,query:query,Classified:Classs})
+        });
+        const Query = await new raiseQueryModel({uId:uId,query:query,Classified:Classs,Status:false})
         const data = await Query.save()
         console.log(data)
         res.send(data)
