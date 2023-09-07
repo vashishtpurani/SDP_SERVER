@@ -29,14 +29,13 @@ module.exports.sendOtp = async (req,res)=>{
             upperCaseAlphabets: false,
             specialChars: false
         })
-        const number = req.body.number;
 
         const cipher = crypto.createCipher(algorithm, key);
-        const encrypted = cipher.update(number, 'utf8', 'hex') + cipher.final('hex'); // encrypted text
+        const encrypted = cipher.update(num, 'utf8', 'hex') + cipher.final('hex'); // encrypted text
 
 
-        const otp = new Otp({number: number, otp: OTP})
-        console.log("Generated otp for", number, "is :" + OTP, "and encrypted is", encrypted, "")
+        const otp = new Otp({number: num, otp: OTP})
+        console.log("Generated otp for", num, "is :" + OTP, "and encrypted is", encrypted, "")
         console.log("Generated otp is :" + OTP)
 
         const final = await otp.save()
@@ -61,8 +60,8 @@ module.exports.Verify = async(req,res)=>{
         const lastOtp = otpHolder.pop()
         console.log("last sent otp is : " + lastOtp.otp)
         console.log("Your entered otp is : " + req.body.otp)
-        const valid = lastOtp.otp === req.body.otp || 1111 // TODO: change this before final app production
-        console.log(valid)
+        const valid = (lastOtp.otp === req.body.otp ) // TODO: change this before final app production
+        console.log(valid,"asdasdasdasd")
         if (valid) {
             const user = await new userModel({number:num})
             const final =  user.save()

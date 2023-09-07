@@ -22,7 +22,7 @@ module.exports.signUp = async (req,res)=>{
         if(valid.length===0){
             return res.send("NOT VALID")
         }
-        if(valid.length!==0&&valid2==0){
+        if(valid.length!==0&&valid2===0){
             const {advName,advClass,advPass} = req.body
             const salt = await bcrypt.genSalt(10)
             const hashPass = await bcrypt.hash(advPass,salt)

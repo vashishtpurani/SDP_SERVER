@@ -28,8 +28,8 @@ const io = require('socket.io')(server,{
     }
 })
 let id
-io.on("connection",(skt)=>{
-    console.log(`SOCKET CONNECTION EXTABLISHED : ${skt.id}`)
+io.on("connection",(io)=>{
+    console.log(`SOCKET CONNECTION EXTABLISHED : ${io.id}`)
 
     io.on("setup",(userData)=>{
         id = userData.id
@@ -38,10 +38,13 @@ io.on("connection",(skt)=>{
         console.log("KONNECTED")
     })
 
-    io.on("join chat",(userData)=>{
-        io.join(userData.id)
-        io.emit("KONNECTED")
-        console.log("KONNECTED")
+    io.on("join chat",(room)=>{
+        io.join(room)
+        console.log("use joined room",room)
+    })
+
+    io.on("new message",(NMRe)=>{
+        let chat = NMRe.chat;
     })
 })
 

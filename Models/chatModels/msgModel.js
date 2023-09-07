@@ -6,8 +6,7 @@ module.exports.msgModel = model('msgModel',Schema({
         type:Schema.Types.ObjectId
     },
     content:[{
-        type:String,
-        trim:true
+        type:String
     }],
     chat:{
         type:Schema.Types.ObjectId,

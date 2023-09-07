@@ -6,12 +6,16 @@ module.exports.chatModel = model('chatModel',Schema({
         type:String,
         trim:true
     },
-    users:[{
+    users:{
         type:Schema.Types.ObjectId,
-        ref:['dataModel','advLoginModel']
-    }],
+        ref: 'dataModel'
+    },
+    advUsers:{
+        type:Schema.Types.ObjectId,
+        ref: 'advLoginModel'
+    },
     latestMessage:{
         type:Schema.Types.ObjectId,
         ref:"msgModel"
-    }
+    },
 },{timestamps:true}))
