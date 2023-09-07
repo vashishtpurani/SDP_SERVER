@@ -57,7 +57,7 @@ module.exports.Verify = async(req,res)=>{
         })
         console.log(encrypted)
         console.log(req.body.otp)
-        if (otpHolder.length === 0) return res.status(400).send("NO OTP RECEIVED")
+        if (otpHolder.length === 0) return res.status(400).send("Incorrect Phone Number")
         const lastOtp = otpHolder.pop()
         console.log("last sent otp is : " + lastOtp.otp)
         console.log("Your entered otp is : " + req.body.otp)
