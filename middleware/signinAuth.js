@@ -22,7 +22,7 @@ const signinAuth = asyncHandler(async (req, res, next)=>{
     }
     if(!token){
         res.status(401)
-        throw new error("no token")
+        throw new Error("no token")
     }
 })
 

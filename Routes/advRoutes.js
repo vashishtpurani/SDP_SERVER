@@ -10,7 +10,7 @@ router.route('/verify').post(signUp)
 router.route('/signIn').post(signIn)
 
 //FOR QUERIES
-router.route('/reqQuery').post(advLoginAuth,reqQuery)
-router.route('/ansQuery/:id').post(advLoginAuth,ansQuery)
+router.route('/reqQuery').get(reqQuery)
+router.route('/ansQuery/:id').post(ansQuery)
 
 module.exports = router

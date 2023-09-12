@@ -4,6 +4,7 @@ const {raiseQueryModel} = require("../../Models/queryModels/raiseQueryModel");
 
 module.exports.reqQuery = async (req,res)=>{
     try{
+        console.log(req.headers.authorization)
         const token = req.headers.authorization.split(' ')[1]
         const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
 
@@ -11,7 +12,7 @@ module.exports.reqQuery = async (req,res)=>{
         const queries = await raiseQueryModel.find({Classified:user[0].advClass,Status:false})
         console.log(queries)
 
-        res.send(queries)
+        res.json({data: queries})
     }catch (e) {
         console.log(e)
     }
@@ -36,7 +37,6 @@ module.exports.ansQuery = async(req,res)=>{
         })
 
         // console.log(answered)
-
     }catch (e) {
         console.log(e)
     }

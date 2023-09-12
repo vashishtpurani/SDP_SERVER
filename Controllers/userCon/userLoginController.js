@@ -82,7 +82,7 @@ module.exports.Verify = async(req,res)=>{
 module.exports.signUp = async(req,res)=>{
     try{
         const {firstName,lastName,phoneNumber,password} = req.body
-
+        console.log(req.body)
         const salt = await bcrypt.genSalt(10)
         const hashPass = await bcrypt.hash(password,salt)
 
@@ -94,7 +94,7 @@ module.exports.signUp = async(req,res)=>{
         })
 
         await sabe.save()
-        res.status(200).send("User Generated")
+        res.status(200).json({message: "User Generated"})
     }catch (e) {
         console.log(e)
         res.send(e)

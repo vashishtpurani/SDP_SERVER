@@ -1,8 +1,18 @@
 const {raiseQueryModel} = require("../../Models/queryModels/raiseQueryModel")
 const axios =  require("axios")
+const jwt = require("jsonwebtoken");
+const multer = require('multer')
+const storage = multer.diskStorage({
+    destination:(req,file,cb)=>{
+        cb()
+    }
+})
 module.exports.raiseQuery = async(req,res)=>{
     try{
-        const {uId,query} = req.body
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const uId = decoded.id
+        const {query} = req.body
         let Classs
         async function Classifier() {
             let response = await axios.post(
@@ -28,3 +38,22 @@ module.exports.raiseQuery = async(req,res)=>{
         console.log(e)
     }
 }
+module.exports.fetchAll = async(rea,res)=>{
+    try{
+        const data = await raiseQueryModel.find()
+        res.send(data)
+    }catch (e) {
+        console.log(e)
+        res.send(e)
+    }
+}
+module.exports.fetchUserAll = async(rea,res)=>{
+    try{
+        const data = await raiseQueryModel.find()
+        res.send(data)
+    }catch (e) {
+        console.log(e)
+        res.send(e)
+    }
+}
+
