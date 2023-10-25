@@ -51,6 +51,8 @@ io.on("connection",(io)=>{
 
 /*assets
     https://www.altexsoft.com/blog/document-classification/
-    can I drive my who whealer listening to music
+    https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+    can I drive my two whealer listening to music
     can I drive my bike with headphones on
+    I had an omelet for breakfast.
 */

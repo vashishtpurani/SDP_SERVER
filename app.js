@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const cors = require("cors");
 const bodyParser = require('body-parser')
+const cookieParser = require("cookie-parser");
 
 //importing all routes from Routes folder
 const userRoutes = require("./Routes/userRoutes")
@@ -17,6 +18,7 @@ app.use(cors({
     allowedHeaders: ['*'],
     exposedHeaders: ['Content-Type']
 }))
+app.use(cookieParser());
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:false}))

@@ -20,8 +20,13 @@ module.exports.raiseQueryModel = model('raiseQueryModel',Schema({
     },
     Ans:[{
         advId:{
-            type:String
+            type:Schema.Types.ObjectId,
+            required:true,
+            ref:"advLoginModel"
         },
-        ANS:[{}]
+        ANS:[{
+            ans:String,
+            time:Date
+        }]
     }]
 },{timestamps:true}))

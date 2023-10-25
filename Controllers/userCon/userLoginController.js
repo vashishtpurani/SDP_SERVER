@@ -16,7 +16,8 @@ const generateToken = (id)=>{
 
 module.exports.sendOtp = async (req,res)=>{
     try{
-        const num = req.body.number
+        // const num = req.body.number
+        const num = req.params.num
         const user = await dataModel.findOne({
             phoneNumber: num
         })
@@ -30,12 +31,12 @@ module.exports.sendOtp = async (req,res)=>{
             specialChars: false
         })
 
-        const cipher = crypto.createCipher(algorithm, key);
-        const encrypted = cipher.update(num, 'utf8', 'hex') + cipher.final('hex'); // encrypted text
+        // const cipher = crypto.createCipher(algorithm, key);
+        // const encrypted = cipher.update(num, 'utf8', 'hex') + cipher.final('hex'); // encrypted text
 
 
         const otp = new Otp({number: num, otp: OTP})
-        console.log("Generated otp for", num, "is :" + OTP, "and encrypted is", encrypted, "")
+        // console.log("Generated otp for", num, "is :" + OTP, "and encrypted is", encrypted, "")
         console.log("Generated otp is :" + OTP)
 
         const final = await otp.save()
@@ -110,6 +111,12 @@ module.exports.signIn = async (req,res)=>{
         console.log(staus)
         if(user.length!==0 && (await bcrypt.compare(password,user.password))){
             console.log("USER FOUND")
+            res.cookie('jwt', generateToken(user._id), {
+                httpOnly: true,
+                // secure: true,
+                sameSite: 'Strict',
+                maxAge: 60 * 60 * 1000, // 1 hour expiration
+            });
             res.status(200).json({message:"User Found",
                 _id : user.id,
                 phoneNumber : user.phoneNumber,

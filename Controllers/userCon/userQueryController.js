@@ -2,6 +2,7 @@ const {raiseQueryModel} = require("../../Models/queryModels/raiseQueryModel")
 const axios =  require("axios")
 const jwt = require("jsonwebtoken");
 const multer = require('multer')
+const {data} = require("@tensorflow/tfjs");
 const storage = multer.diskStorage({
     destination:(req,file,cb)=>{
         cb()
@@ -38,22 +39,108 @@ module.exports.raiseQuery = async(req,res)=>{
         console.log(e)
     }
 }
-module.exports.fetchAll = async(rea,res)=>{
+module.exports.fetchAll = async (req, res) => {
+    try {
+        const queries = await raiseQueryModel.find().populate({
+            path: 'Ans.advId',
+            model: 'advLoginModel',
+            select: 'name', // Assuming the lawyer's name is in the 'name' field
+        }).exec();
+
+        // Extract only the necessary information for the response
+        const simplifiedData = queries.map(async (item) => {
+            const populatedItem = await raiseQueryModel.findById(item._id).populate({
+                path: 'Ans.advId',
+                model: 'advLoginModel',
+                select: 'advName',
+            });
+            return {
+                id: populatedItem._id,
+                uId: populatedItem.uId,
+                query: populatedItem.query,
+                Classified: populatedItem.Classified,
+                Status: populatedItem.Status,
+                Ans: populatedItem.Ans.map(answer => ({
+                    id:answer.advId,
+                    lawyerName: answer.advId.advName,
+                    ANS:answer.ANS
+                })),
+                createdAt: populatedItem.createdAt,
+                updatedAt: populatedItem.updatedAt
+            };
+        });
+        Promise.all(simplifiedData)
+            .then(data => res.status(200).json(data))
+            .catch(error => {
+                console.error(error);
+                res.status(500).json({ message: 'Internal Server Error' });
+            });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+module.exports.fetchUserAll = async(req,res)=>{
     try{
-        const data = await raiseQueryModel.find()
-        res.send(data)
-    }catch (e) {
-        console.log(e)
-        res.send(e)
+        // console.log(req.headers)
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const uId = decoded.id
+        const queries = await raiseQueryModel.find({uId:uId}).populate({
+            path: 'Ans.advId',
+            model: 'advLoginModel',
+            select: 'name', // Assuming the lawyer's name is in the 'name' field
+        }).exec();
+
+        // Extract only the necessary information for the response
+        const simplifiedData = queries.map(async (item) => {
+            const populatedItem = await raiseQueryModel.findById(item._id).populate({
+                path: 'Ans.advId',
+                model: 'advLoginModel',
+                select: 'advName',
+            });
+
+
+            return {
+                id: populatedItem._id,
+                uId: populatedItem.uId,
+                query: populatedItem.query,
+                Classified: populatedItem.Classified,
+                Status: populatedItem.Status,
+                Ans: populatedItem.Ans.map(answer => ({
+                    id:answer.advId._id,
+                    lawyerName: answer.advId.advName,
+                    ANS:answer.ANS
+                })),
+                createdAt: populatedItem.createdAt,
+                updatedAt: populatedItem.updatedAt
+            };
+        });
+        Promise.all(simplifiedData)
+            .then(data => res.status(200).json(data))
+            .catch(error => {
+                console.error(error);
+                res.status(500).json({ message: 'Internal Server Error' });
+            });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 }
-module.exports.fetchUserAll = async(rea,res)=>{
+module.exports.reopenQuery = async(req,res)=>{
     try{
-        const data = await raiseQueryModel.find()
-        res.send(data)
-    }catch (e) {
+        const {id} = req.params
+        console.log(id)
+        const query = await raiseQueryModel.findByIdAndUpdate(
+            id,
+            { $set: { Status: false } },
+            { new: true, useFindAndModify: false }
+        )
+        console.log("opened")
+        res.json({status:200,message:"Opened"})
+    }catch (e){
         console.log(e)
-        res.send(e)
     }
+
 }
 

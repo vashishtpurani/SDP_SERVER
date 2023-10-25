@@ -5,17 +5,44 @@ const {chatModel} = require("../../Models/chatModels/chatModel")
 const {dataModel} = require("../../Models/signInAuth/dataModel");
 const {advLoginModel} = require("../../Models/advModels/advLoginModel");
 const expressAsyncHandler = require("express-async-handler");
+const {chatReqModel} = require("../../Models/chatModels/chatReqModel");
 
+module.exports.reqCom = async(req,res)=>{
+    try{
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const userId = decoded.id
+
+        const {advId} = req.params
+
+
+        const exists = await chatReqModel.find({users:userId,advId:advId})
+        if(exists.length!==0){
+            console.log("LOFANOSNIDANDIOSANIDONAOSNDOIANSIDONASOID")
+            res.send({message:"already a friend"})
+        }else{
+            const data = await new chatReqModel({
+                users:userId,
+                advId:advId
+            })
+            await data.save()
+            res.send({status:200,message:"created",data:data})
+        }
+
+    }catch (e) {
+        res.send(e)
+        console.log(e)
+    }
+}
 module.exports.accessChat = AsyncHandler(async (req,res)=>{
-    // const token = req.headers.authorization.split(' ')[1]
-    // const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
-    // const userId = decoded.id
-    const {userId} = req.body
+    const token = req.headers.authorization.split(' ')[1]
+    const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+    const advId = decoded.id
     const {user2Id} = req.body
     console.log(user2Id)
-    console.log(userId)
+    console.log(advId)
     let isChat = await chatModel.find({$and:[
-            {users:{$eq:userId}},
+            {users:{$eq:advId}},
             {advUsers:{$eq:user2Id}}
         ]})
         .populate({ path: 'users', select: '-password'})
@@ -36,7 +63,7 @@ module.exports.accessChat = AsyncHandler(async (req,res)=>{
     }else{
         let chatData = {
             chatName:"sender",
-            users:[userId],
+            users:[advId],
             advUsers:user2Id
         }
         try{

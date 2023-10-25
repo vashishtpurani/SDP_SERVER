@@ -11,6 +11,6 @@ router.route('/signIn').post(signIn)
 
 //FOR QUERIES
 router.route('/reqQuery').get(reqQuery)
-router.route('/ansQuery/:id').post(ansQuery)
+router.route('/ansQuery').post(ansQuery)
 
 module.exports = router
