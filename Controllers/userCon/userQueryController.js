@@ -1,35 +1,79 @@
 const {raiseQueryModel} = require("../../Models/queryModels/raiseQueryModel")
 const axios =  require("axios")
-const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken")
 const multer = require('multer')
-const {data} = require("@tensorflow/tfjs");
+const tf = require('@tensorflow/tfjs');
+require('@tensorflow/tfjs');
+const use = require('@tensorflow-models/universal-sentence-encoder');
 const storage = multer.diskStorage({
     destination:(req,file,cb)=>{
         cb()
     }
 })
-module.exports.raiseQuery = async(req,res)=>{
+let model
+async function Classifier(query) {
+    let response = await axios.post(
+        'https://api-inference.huggingface.co/models/facebook/bart-large-mnli',
+        {
+            "inputs": query,
+            "parameters": {"candidate_labels": ["civil","crime","matrimonial"]}
+        },
+        {headers: { Authorization: `Bearer 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` }}
+    )
+    return response.data;
+}
+async function calculateSimilarity(sentence1, sentence2) {
+    if (!model) {
+        model = await use.load();
+    }
+
+    const embeddings = await model.embed([sentence1, sentence2])
+
+    const similarity = tf.dot(embeddings.arraySync()[0], embeddings.arraySync()[1])
+
+    return similarity;
+}
+
+module.exports.sentenceSimilarity = async(req,res)=>{
     try{
         const token = req.headers.authorization.split(' ')[1]
         const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
         const uId = decoded.id
         const {query} = req.body
         let Classs
-        async function Classifier() {
-            let response = await axios.post(
-                'https://api-inference.huggingface.co/models/facebook/bart-large-mnli',
-                {
-                    "inputs": query,
-                    "parameters": {"candidate_labels": ["civil","crime","matrimonial"]}
-                },
-                {headers: { Authorization: `Bearer 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` }}
-            )
-            return response.data;
-        }
-        await Classifier().then((e)=>{
+        await Classifier(query).then((e)=>{
             Classs = e.labels[0]
             console.log(Classs)
         });
+        const queries = await raiseQueryModel.find({Classified:Classs})
+        console.log(queries)
+        const results = []
+        for (const dbQuery of queries) {
+            const similarityTensor = await calculateSimilarity(query, dbQuery.query)
+            const similarity = similarityTensor.arraySync();
+
+            console.log(`Similarity with query (${dbQuery._id}): ${similarity}`)
+            if(similarity>=0.6){
+                results.push({ _id: dbQuery._id, query:dbQuery.query})
+            }
+        }
+        console.log(results)
+        if(results.length===0){
+            const Query = await new raiseQueryModel({uId:uId,query:query,Classified:Classs,Status:false})
+            const data = await Query.save()
+        }
+        res.json({message:"UwU",data:results,status:200})
+    }catch (e) {
+        console.log(e)
+    }
+}
+module.exports.raiseQuery = async(req,res)=>{
+    try{
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const uId = decoded.id
+        const {query,Classs} = req.body
+
         const Query = await new raiseQueryModel({uId:uId,query:query,Classified:Classs,Status:false})
         const data = await Query.save()
         console.log(data)
