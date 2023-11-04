@@ -28,25 +28,28 @@ const io = require('socket.io')(server,{
     }
 })
 let id
-io.on("connection",(io)=>{
-    console.log(`SOCKET CONNECTION EXTABLISHED : ${io.id}`)
+io.on("connection", (socket) => {
+    console.log(`SOCKET CONNECTION ESTABLISHED : ${socket.id}`);
 
-    io.on("setup",(userData)=>{
-        id = userData.id
-        io.join(id)
-        io.emit("KONNECTED")
-        console.log("KONNECTED")
-    })
+    socket.on("setup", (userData) => {
+        // Assuming 'id' is defined somewhere
+        id = userData;
+        socket.join(id);
+        socket.emit("KONNECTED");
+    });
 
-    io.on("join chat",(room)=>{
-        io.join(room)
-        console.log("use joined room",room)
-    })
+    socket.on("join chat", (room) => {
+        socket.join(room);
+        console.log("user joined room:", room);
+    });
 
-    io.on("new message",(NMRe)=>{
-        let chat = NMRe.chat;
-    })
-})
+    socket.on("new message", (newMessageReceived) => {
+        let chat = newMessageReceived.chat;
+        console.log("advUser : ", newMessageReceived.chat._id);
+
+        io.in(newMessageReceived.chat._id).emit("message received", newMessageReceived);
+    });
+});
 
 
 /*assets
@@ -55,4 +58,5 @@ io.on("connection",(io)=>{
     can I drive my two whealer listening to music
     can I drive my bike with headphones on
     I had an omelet for breakfast.
+    bhavya:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YWMwNGRkOGYzMjdlZWUwMzEzMmFlYiIsImlhdCI6MTY5ODQyNDk3MX0.0W8hjxojqeBJpJwwtuGA4IzPNofSDJJ8Pyew1bVD7is
 */

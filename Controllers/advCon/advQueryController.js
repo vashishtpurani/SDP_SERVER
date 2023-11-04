@@ -48,8 +48,8 @@ module.exports.ansQuery = async (req, res) => {
     try {
         const { Ans, id } = req.body;
 
-        const token = req.headers.authorization.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRETKEY, '', false);
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRETKEY, '', false)
 
         const data = await raiseQueryModel.find({
             _id: id,

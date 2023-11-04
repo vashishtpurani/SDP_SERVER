@@ -18,7 +18,7 @@ async function Classifier(query) {
             "inputs": query,
             "parameters": {"candidate_labels": ["civil","crime","matrimonial"]}
         },
-        {headers: { Authorization: `Bearer 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` }}
+        {headers: { Authorization: `Bearer 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` }}
     )
     return response.data;
 }
@@ -36,9 +36,9 @@ async function calculateSimilarity(sentence1, sentence2) {
 
 module.exports.sentenceSimilarity = async(req,res)=>{
     try{
-        const token = req.headers.authorization.split(' ')[1]
-        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
-        const uId = decoded.id
+        // const token = req.headers.authorization.split(' ')[1]
+        // const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        // const uId = decoded.id
         const {query} = req.body
         let Classs
         await Classifier(query).then((e)=>{
@@ -58,10 +58,10 @@ module.exports.sentenceSimilarity = async(req,res)=>{
             }
         }
         console.log(results)
-        if(results.length===0){
-            const Query = await new raiseQueryModel({uId:uId,query:query,Classified:Classs,Status:false})
-            const data = await Query.save()
-        }
+        // if(results.length===0){
+        //     const Query = await new raiseQueryModel({uId:uId,query:query,Classified:Classs,Status:false})
+        //     const data = await Query.save()
+        // }
         res.json({message:"UwU",data:results,status:200})
     }catch (e) {
         console.log(e)

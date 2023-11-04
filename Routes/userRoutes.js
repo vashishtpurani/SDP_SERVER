@@ -3,6 +3,7 @@ const {signUp,Verify, sendOtp, signIn} = require("../Controllers/userCon/userLog
 const {signupAuth} = require("../middleware/signupAuth")
 const {signinAuth} = require("../middleware/signinAuth");
 const {raiseQuery, fetchAll, fetchUserAll, reopenQuery, sentenceSimilarity} = require("../Controllers/userCon/userQueryController")
+const {crtFeedback} = require("../Controllers/feedbackCon/feedbackController");
 
 //for user Auth
 router.route('/sendOtp/:num').post(sendOtp)
@@ -16,5 +17,8 @@ router.route('/senSim').post(sentenceSimilarity)
 router.route('/getAll').get(fetchAll)
 router.route('/getMy').get(signinAuth,fetchUserAll)
 router.route('/reopen/:id').post(signinAuth,reopenQuery)
+
+//for feedback
+router.route('/crtFeedback').post(crtFeedback)
 
 module.exports = router

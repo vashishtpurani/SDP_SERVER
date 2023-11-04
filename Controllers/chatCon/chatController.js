@@ -34,6 +34,44 @@ module.exports.reqCom = async(req,res)=>{
         console.log(e)
     }
 }
+module.exports.getCom = async(req,res)=>{
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const userId = decoded.id
+
+        const data = await chatReqModel.find({advId:userId})
+        res.send({message:"OK",data:data,status:200})
+    }catch (e){
+        console.log(e)
+    }
+}
+module.exports.acceptCom = async(req,res)=>{
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const userId = decoded.id
+        const id = req.params.id
+
+        let chatData = {
+            chatName:"sender",
+            users:id ,
+            advUsers:userId
+        }
+        try{
+            const createdCreatedChat = await chatModel.create(chatData)
+            console.log(chatData)
+            let fullChat = await chatModel.findOne({_id:createdCreatedChat._id})
+                .populate({ path: 'users', select: '-password'})
+                .populate({ path: 'advUsers', select: '-advPass'})
+            res.send(fullChat)
+        }catch (e) {
+            console.log(e)
+        }
+    }catch (e){
+        console.log(e)
+    }
+}
 module.exports.accessChat = AsyncHandler(async (req,res)=>{
     const token = req.headers.authorization.split(' ')[1]
     const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
@@ -63,7 +101,7 @@ module.exports.accessChat = AsyncHandler(async (req,res)=>{
     }else{
         let chatData = {
             chatName:"sender",
-            users:[advId],
+            users:advId,
             advUsers:user2Id
         }
         try{
@@ -78,27 +116,104 @@ module.exports.accessChat = AsyncHandler(async (req,res)=>{
         }
     }
 })
-module.exports.fetchChats = expressAsyncHandler(async (req,res)=>{
-    try{
-        const {id} = req.body
-        chatModel.find({user: {$eq:id}})
-            .populate({path:'users',select:'firstName lastName phoneNumber'})
+// module.exports.fetchChats = expressAsyncHandler(async (req,res)=>{
+//     try{
+//         const {id} = req.body
+//         chatModel.find({user: {$eq:id}})
+//             .populate({path:'users',select:'firstName lastName phoneNumber'})
+//             .populate("latestMessage")
+//             .sort({updatedAt:-1})
+//             .then(async (result)=>{
+//                 result = await dataModel.populate(result, {
+//                     path:"latestMessage.sender",
+//                     select: "firstName lastName"
+//                 }).then(async(a)=>{
+//                     let abc = await advLoginModel.find({_id:result[0].advUsers},'-advPass')
+//                     a = a[0]._doc
+//                     abc = abc[0]._doc
+//                     const hehe = {...a,...abc}
+//                     console.log(a,abc)
+//                     res.status(200).send(hehe)
+//                 })
+//             })
+//     }catch (e) {
+//         console.log(e)
+//     }
+// })
+module.exports.fetchChats = expressAsyncHandler(async (req, res) => {
+    try {
+        const { id } = req.body;
+        console.log(id)
+        const result = await chatModel.find({ users: { $eq: id } })
+            .populate({ path: 'users', select: 'firstName lastName phoneNumber' })
             .populate("latestMessage")
-            .sort({updatedAt:-1})
-            .then(async (result)=>{
-                result = await dataModel.populate(result, {
-                    path:"latestMessage.sender",
-                    select: "firstName lastName"
-                }).then(async(a)=>{
-                    let abc = await advLoginModel.find({_id:result[0].advUsers},'-advPass')
-                    a = a[0]._doc
-                    abc = abc[0]._doc
-                    const hehe = {...a,...abc}
-                    console.log(a,abc)
-                    res.status(200).send(hehe)
-                })
-            })
-    }catch (e) {
-        console.log(e)
+            .sort({ updatedAt: -1 });
+
+        if (result.length === 0) {
+            return res.status(404).send({ message: 'Chats not found' });
+        }
+
+        const populatedResult = await dataModel.populate(result, {
+            path: "latestMessage.sender",
+            select: "firstName lastName"
+        });
+
+        if (!populatedResult || populatedResult.length === 0) {
+            return res.status(404).send({ message: 'Chats not found' });
+        }
+
+        const advUser = await advLoginModel.findById(result[0].advUsers, '-advPass');
+
+        if (!advUser) {
+            return res.status(404).send({ message: 'Adv user not found' });
+        }
+
+        const hehe = { ...populatedResult[0]._doc, ...advUser._doc };
+        // console.log(hehe);
+        res.status(200).send(hehe);
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({ message: 'Internal Server Error' });
+    }
+});
+
+module.exports.fetchChatsLaw = expressAsyncHandler(async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const id = decoded.id
+        console.log(id);
+
+        const results = await chatModel.find({ advUsers: { $eq: id } })
+            .populate({ path: 'users', select: 'firstName lastName phoneNumber' })
+            .populate("latestMessage")
+            .sort({ updatedAt: -1 });
+
+        if (results.length === 0) {
+            return res.status(404).send({ message: 'Chats not found' });
+        }
+
+        const combinedResults = [];
+
+        for (const result of results) {
+            const populatedResult = await dataModel.populate(result, {
+                path: "latestMessage.sender",
+                select: "firstName lastName"
+            });
+
+            if (!populatedResult) {
+                continue; // Skip if no populated result
+            }
+
+            const hehe = { ...populatedResult._doc, ...result._doc };
+            combinedResults.push(hehe);
+        }
+        const adv = await advLoginModel.findById(id,'-advPass')
+
+        // console.log(combinedResults);
+        res.status(200).send(combinedResults);
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({ message: 'Internal Server Error' });
     }
 })

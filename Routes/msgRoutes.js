@@ -1,7 +1,7 @@
-const {sendMsg, getMsg} = require("../Controllers/msgController/msgController");
+const {sendMsg, getMsgLaw} = require("../Controllers/msgController/msgController");
 const router = require('express').Router()
 
-router.route("/sendMsg").post(sendMsg)
-router.route("/getMsg/:id").get(getMsg)
+router.route("/sendMsg/:id").post(sendMsg)
+router.route("/getMsgLaw/:id").get(getMsgLaw)
 
 module.exports = router
