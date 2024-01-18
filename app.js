@@ -9,6 +9,7 @@ const userRoutes = require("./Routes/userRoutes")
 const advRoutes = require("./Routes/advRoutes")
 const chatRoutes = require("./Routes/chatRoutes")
 const msgRoutes = require("./Routes/msgRoutes")
+const comRoutes = require("./Routes/comRoutes")
 
 //enabling cross-reference policy for react connection
 app.use(cors({
@@ -28,5 +29,6 @@ app.use("/user",userRoutes)
 app.use("/law",advRoutes)
 app.use("/chat",chatRoutes)
 app.use("/msg",msgRoutes)
+app.use("/com",comRoutes)
 
 module.exports = app

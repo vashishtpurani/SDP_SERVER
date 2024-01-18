@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 
 
 //TODO: change where you store secrets
-
+//TODO: manage who can send messaging requests to lawyer
 mongoose.connect(process.env.MONGODB_URL_LOCAL,{
     useNewUrlParser:true,
     useUnifiedTopology:true,

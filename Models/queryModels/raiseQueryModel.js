@@ -28,5 +28,13 @@ module.exports.raiseQueryModel = model('raiseQueryModel',Schema({
             ans:String,
             time:Date
         }]
+    }],
+    upVote:[{
+        type:Schema.Types.ObjectId,
+        ref:"dataModel"
+    }],
+    downVote:[{
+        type:Schema.Types.ObjectId,
+        ref:"dataModel"
     }]
 },{timestamps:true}))

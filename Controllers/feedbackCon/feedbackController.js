@@ -18,8 +18,8 @@ module.exports.crtFeedback = async(req,res)=>{
     try{
         const token = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRETKEY, '', false);
-        const uId = decoded.id
-        const {feedbackText,ratings,qId,advId} = req.body
+        // const uId = decoded.id
+        const {feedbackText,ratings,qId,advId,uId} = req.body
 
         console.log(req.body)
         let Classs
@@ -45,7 +45,7 @@ module.exports.getFeedbacksLa = async (req,res)=> {
         const id = decoded.id
 
         const feedbacks = await feedbackModel.find({advId:id})
-
+        console.log(feedbacks)
         res.send({status:200,message:"OK",data:feedbacks})
     }catch (e) {
         console.log(e)

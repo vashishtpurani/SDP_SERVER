@@ -53,8 +53,8 @@ module.exports.sentenceSimilarity = async(req,res)=>{
             const similarity = similarityTensor.arraySync();
 
             console.log(`Similarity with query (${dbQuery._id}): ${similarity}`)
-            if(similarity>=0.6){
-                results.push({ _id: dbQuery._id, query:dbQuery.query})
+            if(similarity>=0.5){
+                results.push(dbQuery)
             }
         }
         console.log(results)
@@ -62,7 +62,7 @@ module.exports.sentenceSimilarity = async(req,res)=>{
         //     const Query = await new raiseQueryModel({uId:uId,query:query,Classified:Classs,Status:false})
         //     const data = await Query.save()
         // }
-        res.json({message:"UwU",data:results,status:200})
+        res.json({message:"UwU",data:results,status:200,classs:Classs})
     }catch (e) {
         console.log(e)
     }
@@ -73,6 +73,8 @@ module.exports.raiseQuery = async(req,res)=>{
         const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
         const uId = decoded.id
         const {query,Classs} = req.body
+
+        console.log(req.body)
 
         const Query = await new raiseQueryModel({uId:uId,query:query,Classified:Classs,Status:false})
         const data = await Query.save()
@@ -109,6 +111,8 @@ module.exports.fetchAll = async (req, res) => {
                     lawyerName: answer.advId.advName,
                     ANS:answer.ANS
                 })),
+                upVote: populatedItem.upVote.map(up=>up),
+                downVote: populatedItem.downVote.map(down=>down),
                 createdAt: populatedItem.createdAt,
                 updatedAt: populatedItem.updatedAt
             };
@@ -156,6 +160,8 @@ module.exports.fetchUserAll = async(req,res)=>{
                     lawyerName: answer.advId.advName,
                     ANS:answer.ANS
                 })),
+                upVote: populatedItem.upVote.map(up=>up),
+                downVote: populatedItem.downVote.map(down=>down),
                 createdAt: populatedItem.createdAt,
                 updatedAt: populatedItem.updatedAt
             };
@@ -188,3 +194,92 @@ module.exports.reopenQuery = async(req,res)=>{
 
 }
 
+module.exports.filterQuery = async (req,res)=>{
+    try{
+        const {filter} = req.params
+        const data = await raiseQueryModel.find({Classified:filter})
+
+        res.send({message:"OK",data:data,status:200});
+
+    }catch (e) {
+        console.log(e)
+    }
+}
+module.exports.getOne = async (req,res)=>{
+    try{
+        const {id} = req.params
+        console.log(id)
+        const data = await raiseQueryModel.find({_id:id})
+
+        res.send({message:"OK",data:data,status:200});
+
+    }catch (e) {
+        console.log(e)
+    }
+}
+
+module.exports.upVote = async (req,res)=>{
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const uId = decoded.id
+
+        const {queryId} = req.params
+
+        const ifDown = await raiseQueryModel.findOne({ _id: queryId, downVote: uId })
+        const ifUp = await raiseQueryModel.findOne({ _id: queryId, upVote: uId })
+
+        if(ifDown){
+            ifDown.downVote.pull(uId)
+            ifDown.upVote.push(uId)
+            const newDoc = await ifDown.save();
+            res.send({status:200,data:newDoc,message: 'DownVote changed to upVote'})
+        }else if(ifUp){
+            ifUp.upVote.pull(uId)
+            const newDoc = await ifUp.save()
+            res.send({status:200,data:newDoc,message: 'UpVote Removed Successfully'})
+        }else{
+            const updatedQuery = await raiseQueryModel.findByIdAndUpdate(
+                queryId,
+                 { upVote: uId } ,
+                { new: true }
+            )
+            res.status(200).json({ message: 'UpVote added successfully', query: updatedQuery });
+        }
+    }catch (e) {
+        console.log(e)
+    }
+}
+
+module.exports.downVote = async (req,res)=>{
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const uId = decoded.id
+
+        const {queryId} = req.params
+
+        const ifDown = await raiseQueryModel.findOne({ _id: queryId, downVote: uId })
+        const ifUp = await raiseQueryModel.findOne({ _id: queryId, upVote: uId })
+
+        if(ifDown){
+            ifDown.downVote.pull(uId)
+            const newDoc = await ifDown.save();
+            res.send({status:200,data:newDoc, message: 'DownVote Removed'})
+        }else if(ifUp){
+            ifUp.upVote.pull(uId)
+            ifUp.downVote.push(uId)
+            const newDoc = await ifUp.save()
+            res.send({status:200,data:newDoc,message: 'UpVote Changed to downVote'})
+        }else{
+            const updatedQuery = await raiseQueryModel.findByIdAndUpdate(
+                queryId,
+                 { downVote: uId } ,
+                { new: true }
+            )
+            res.status(200).json({ message: 'downVote added successfully', query: updatedQuery });
+        }
+    }catch (e) {
+        console.log(e)
+    }
+}
