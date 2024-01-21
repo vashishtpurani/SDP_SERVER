@@ -17,7 +17,8 @@ const generateToken = (id)=>{
 module.exports.sendOtp = async (req,res)=>{
     try{
         // const num = req.body.number
-        const num = req.params.num
+        const num = req.body.number
+        console.log(req.body)
         const user = await dataModel.findOne({
             phoneNumber: num
         })
@@ -50,6 +51,7 @@ module.exports.sendOtp = async (req,res)=>{
 module.exports.Verify = async(req,res)=>{
     try {
         const num = req.body.number
+        console.log(req.body)
         const cipher = crypto.createCipher(algorithm, key);
         const encrypted = cipher.update(num, 'utf8', 'hex') + cipher.final('hex'); // encrypted text
         const otpHolder = await Otp.find({

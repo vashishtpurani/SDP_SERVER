@@ -6,7 +6,7 @@ const {raiseQuery, fetchAll, fetchUserAll, reopenQuery, sentenceSimilarity, filt
 const {crtFeedback} = require("../Controllers/feedbackCon/feedbackController");
 
 //for user Auth
-router.route('/sendOtp/:num').post(sendOtp)
+router.route('/sendOtp').post(sendOtp)
 router.route('/verify').post(Verify)
 router.route('/signUp').post(signupAuth,signUp)
 router.route('/signIn').post(signIn)
