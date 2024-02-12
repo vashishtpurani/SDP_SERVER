@@ -44,7 +44,7 @@ module.exports.sendOtp = async (req,res)=>{
         return res.status(200).json({message: "ok"})
     }catch (e){
         console.log(e)
-        res.send(e)
+        res.status(500).send("Internal server error")
     }
 }
 

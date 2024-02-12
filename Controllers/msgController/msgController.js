@@ -106,4 +106,4 @@ module.exports.getMsgLaw = expressAsyncHandler(async (req, res) => {
         console.log(e);
         res.status(500).send({ message: 'Internal Server Error' });
     }
-});
+})

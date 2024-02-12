@@ -39,7 +39,9 @@ module.exports.signUp = async (req,res)=>{
 
 module.exports.signIn = async(req,res)=>{
     try{
-        const {advNum,advPass} = req.body
+        // const {advNum,advPass} = req.body
+        const advNum = req.body.number
+        const advPass = req.body.password
         const user = await advLoginModel.findOne({advNum:advNum})
         console.log(user)
         const status = await bcrypt.compare(advPass,user.advPass)

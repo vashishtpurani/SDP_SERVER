@@ -48,6 +48,6 @@ const comModelSchema = new Schema({
     }]
 }, { timestamps: true });
 
-const comModel = model('comModel', comModelSchema);
+const comModel = model('comModel', comModelSchema)
 
-module.exports = { comModel };
+module.exports = { comModel }
