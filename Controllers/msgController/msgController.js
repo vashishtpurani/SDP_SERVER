@@ -97,10 +97,51 @@ module.exports.getMsgLaw = expressAsyncHandler(async (req, res) => {
                     return res.status(404).send({ message: 'User not found' });
                 }
             }
-
             userMessages.push(user);
         }
+        res.send(userMessages);
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({ message: 'Internal Server Error' });
+    }
+})
 
+module.exports.getMsgUser = expressAsyncHandler(async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRETKEY, '', false);
+
+        const messages = await msgModel.find({ chat: id });
+
+        if (messages.length === 0) {
+            return res.status(404).send({ message: 'Messages not found' });
+        }
+        // console.log(messages)
+        const userMessages = [];
+
+        for (const message of messages) {
+            const senderId = message.sender;
+            // console.log(senderId)
+            let user;
+
+            let isAdvLayer = await advLoginModel.findById(senderId, 'advNum advName');
+
+            if (isAdvLayer) {
+                user = { ...message._doc, ...isAdvLayer._doc,user:false };
+            } else {
+
+                let isUser = await dataModel.findById(senderId, 'firstName lastName phoneNumber');
+
+                if (isUser) {
+                    user = { ...message._doc, ...isUser._doc,user:true };
+                } else {
+                    return res.status(404).send({ message: 'User not found' });
+                }
+            }
+            userMessages.push(user);
+        }
         res.send(userMessages);
     } catch (e) {
         console.log(e);

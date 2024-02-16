@@ -1,6 +1,8 @@
 require("dotenv/config")
 const app = require('./app')
 const mongoose = require('mongoose')
+const {advLoginModel} = require("./Models/advModels/advLoginModel");
+const {dataModel} = require("./Models/signInAuth/dataModel");
 
 
 //TODO: change where you store secrets
@@ -43,11 +45,36 @@ io.on("connection", (socket) => {
         console.log("user joined room:", room);
     });
 
-    socket.on("new message", (newMessageReceived) => {
-        let chat = newMessageReceived.chat;
-        console.log("advUser : ", newMessageReceived.chat._id);
+    socket.on("new message", async (newMessageReceived) => {
+        let chat = newMessageReceived.chat
+        console.log("advUser : ", newMessageReceived.chat._id)
+        console.log(newMessageReceived)
+        let id = newMessageReceived.sender
+        let user
 
-        io.in(newMessageReceived.chat._id).emit("message received", newMessageReceived);
+        const fun = async () => {
+            let isAdvLayer = await advLoginModel.findById(id, 'advNum advName')
+            if (isAdvLayer) {
+                user = { ...newMessageReceived, ...isAdvLayer._doc, user: false };
+            } else {
+                let isUser = await dataModel.findById(id, 'firstName lastName phoneNumber');
+                if (isUser) {
+                    user = { ...newMessageReceived, ...isUser._doc, user: true };
+                } else {
+                    throw new Error('User not found');
+                }
+            }
+            return user; // Return the user object
+        }
+
+        try {
+            user = await fun(); // Await the result of the asynchronous function
+            console.log(user);
+            io.in(newMessageReceived.chat._id).emit("message received", user);
+        } catch (error) {
+            console.error(error);
+            // Handle the error here
+        }
     });
 });
 

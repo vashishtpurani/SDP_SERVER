@@ -64,6 +64,7 @@ module.exports.acceptCom = async(req,res)=>{
             let fullChat = await chatModel.findOne({_id:createdCreatedChat._id})
                 .populate({ path: 'users', select: '-password'})
                 .populate({ path: 'advUsers', select: '-advPass'})
+            const remove = await chatReqModel.findOneAndDelete({users:id})
             res.send(fullChat)
         }catch (e) {
             console.log(e)
@@ -209,6 +210,47 @@ module.exports.fetchChatsLaw = expressAsyncHandler(async (req, res) => {
             combinedResults.push(hehe);
         }
         const adv = await advLoginModel.findById(id,'-advPass')
+
+        // console.log(combinedResults);
+        res.status(200).send(combinedResults);
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({ message: 'Internal Server Error' });
+    }
+})
+
+module.exports.fetchChatsUser = expressAsyncHandler(async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
+        const id = decoded.id
+        console.log(id);
+
+        const results = await chatModel.find({ users: { $eq: id } })
+            .populate({ path: 'advUsers', select: 'advName advClass' })
+            .populate("latestMessage")
+            .sort({ updatedAt: -1 });
+
+        if (results.length === 0) {
+            return res.status(404).send({ message: 'Chats not found' });
+        }
+
+        const combinedResults = [];
+
+        for (const result of results) {
+            const populatedResult = await advLoginModel.populate(result, {
+                path: "latestMessage.sender",
+                select: "advName advClass"
+            });
+
+            if (!populatedResult) {
+                continue; // Skip if no populated result
+            }
+
+            const hehe = { ...populatedResult._doc, ...result._doc };
+            combinedResults.push(hehe);
+        }
+        const adv = await dataModel.findById(id,'-password')
 
         // console.log(combinedResults);
         res.status(200).send(combinedResults);
