@@ -14,7 +14,6 @@ const advLoginAuth = asyncHandler(async (req, res, next)=>{
             const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
             req.login = await advLoginModel.findById(decoded.id).select('-number')
             next()
-            // console.log("called")
         }catch (error){
             console.log(error)
             res.status(401)
@@ -23,7 +22,6 @@ const advLoginAuth = asyncHandler(async (req, res, next)=>{
     }
     if(!token){
         res.status(401)
-        // throw new error("no token")
     }
 })
 

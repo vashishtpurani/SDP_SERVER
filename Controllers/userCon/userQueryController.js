@@ -31,7 +31,7 @@ async function calculateSimilarity(sentence1, sentence2) {
 
     const similarity = tf.dot(embeddings.arraySync()[0], embeddings.arraySync()[1])
 
-    return similarity;
+    return similarity
 }
 
 module.exports.sentenceSimilarity = async(req,res)=>{
@@ -40,12 +40,13 @@ module.exports.sentenceSimilarity = async(req,res)=>{
         // const decoded = jwt.verify(token,process.env.JWT_SECRETKEY,'' ,false)
         // const uId = decoded.id
         const {query} = req.body
+        console.log(req.body)
         let Classs
         await Classifier(query).then((e)=>{
             Classs = e.labels[0]
             console.log(Classs)
         });
-        const queries = await raiseQueryModel.find({Classified:Classs})
+        const queries = await raiseQueryModel.find( {Classified:Classs})
         console.log(queries)
         const results = []
         for (const dbQuery of queries) {
